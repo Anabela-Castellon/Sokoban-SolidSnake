@@ -3,6 +3,7 @@ package sokoban.controller;
 import sokoban.model.Direction;
 import sokoban.model.Game;
 import sokoban.model.Level;
+import sokoban.model.Score;
 import sokoban.patterns.factory.LevelFactory;
 import sokoban.patterns.factory.txtLevelFactory; // Respetamos tu nombre de clase actual
 import sokoban.patterns.memento.GameSnapshot;
@@ -89,6 +90,19 @@ public class GameController {
         }
     }
 
+    private String buildLevelSummary() {
+        int movements = game.getMovements();
+        int pushes = game.getPushes();
+        int undoUses = caretaker != null ? caretaker.getTotalUndoUses() : 0;
+        int score = Score.calculate(movements, pushes, undoUses);
+
+        return "Resumen del nivel " + getCurrentLevelNumber() + ":\n"
+                + "Movimientos: " + movements + "\n"
+                + "Empujes: " + pushes + "\n"
+                + "Undo usados: " + undoUses + "\n"
+                + "Puntaje final: " + score;
+    }
+
     /**
      * Reinicia el nivel actual regenerando el tablero y limpiando el historial.
      */
@@ -114,9 +128,11 @@ public class GameController {
      * Controla la transición de niveles delegando los diálogos a la vista.
      */
     private void handleVictory() {
+        String summary = buildLevelSummary();
+
         if (currentLevelIndex < levelPaths.length - 1) {
             // MVC Limpio: La vista decide cómo mostrar el cartel y devuelve la opción elegida
-            boolean nextLevel = window.showVictoryDialog();
+            boolean nextLevel = window.showVictoryDialog(summary);
 
             if (nextLevel) {
                 currentLevelIndex++;
@@ -130,8 +146,8 @@ public class GameController {
                 resetLevel(); // Si cancela, reinicia el nivel actual
             }
         } else {
-            // Si es el último mapa, mostramos el cierre definitivo
-            window.showGameCompletedDialog();
+            // Si es el último mapa, mostramos el cierre definitivo con resumen
+            window.showGameCompletedDialog(summary);
         }
     }
 
@@ -158,5 +174,9 @@ public class GameController {
 
     public int getCurrentLevelNumber() {
         return currentLevelIndex + 1;
+    }
+
+    public int getUndoUses() {
+        return caretaker != null ? caretaker.getTotalUndoUses() : 0;
     }
 }

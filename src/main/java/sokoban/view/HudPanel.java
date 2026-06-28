@@ -14,6 +14,7 @@ public class HudPanel extends JPanel {
     private final JLabel lblLevel;
     private final JLabel lblMovements;
     private final JLabel lblPushes;
+    private final JLabel lblUndos;
     private final JButton btnUndo;
     private final JButton btnReset;
 
@@ -24,6 +25,7 @@ public class HudPanel extends JPanel {
         lblLevel = new JLabel();
         lblMovements = new JLabel();
         lblPushes = new JLabel();
+        lblUndos = new JLabel();
 
         btnUndo = new JButton("Undo (U)");
         btnUndo.addActionListener(e -> controller.undo());
@@ -37,6 +39,7 @@ public class HudPanel extends JPanel {
         add(lblLevel);
         add(lblMovements);
         add(lblPushes);
+        add(lblUndos);
         add(btnUndo);
         add(btnReset);
 
@@ -55,9 +58,11 @@ public class HudPanel extends JPanel {
         if (game != null) {
             lblMovements.setText("Movimientos: " + game.getMovements());
             lblPushes.setText("Empujes: " + game.getPushes());
+            lblUndos.setText("Undo usados: " + controller.getUndoUses());
         } else {
             lblMovements.setText("Movimientos: 0");
             lblPushes.setText("Empujes: 0");
+            lblUndos.setText("Undo usados: 0");
         }
 
         // MVC Puro: Si el Caretaker bloqueó el deshacer (llegó a 3 consecutivos),

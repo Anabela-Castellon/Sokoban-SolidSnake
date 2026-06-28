@@ -50,10 +50,10 @@ public class GameWindow extends JFrame {
      * Muestra un diálogo de confirmación de victoria preguntando si se quiere avanzar de nivel.
      * @return true si el usuario presiona "Sí", false en caso contrario.
      */
-    public boolean showVictoryDialog() {
+    public boolean showVictoryDialog(String summaryMessage) {
         int option = JOptionPane.showConfirmDialog(
                 this,
-                "¡Nivel completado!\n¿Querés pasar al siguiente nivel?",
+                summaryMessage + "\n\n¿Querés pasar al siguiente nivel?",
                 "Victoria",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.INFORMATION_MESSAGE
@@ -62,12 +62,12 @@ public class GameWindow extends JFrame {
     }
 
     /**
-     * Muestra un mensaje informando que se han completado satisfactoriamente todos los niveles.
+     * Muestra un resumen final cuando se completa el último nivel.
      */
-    public void showGameCompletedDialog() {
+    public void showGameCompletedDialog(String summaryMessage) {
         JOptionPane.showMessageDialog(
                 this,
-                "¡Felicitaciones!\nCompletaste todos los niveles.",
+                summaryMessage + "\n\n¡Felicitaciones! Completaste todos los niveles.",
                 "Juego completado",
                 JOptionPane.INFORMATION_MESSAGE
         );
