@@ -23,6 +23,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Image;
 
 public class BoardPanel extends JPanel {
 
@@ -245,10 +246,13 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawNormalBox(Graphics2D g2, int x, int y) {
-        drawCrate(g2, x, y, new Color(174, 127, 73), new Color(109, 74, 38));
-        g2.setColor(new Color(109, 74, 38));
-        g2.drawLine(x + 10, y + 10, x + TILE_SIZE - 10, y + TILE_SIZE - 10);
-        g2.drawLine(x + TILE_SIZE - 10, y + 10, x + 10, y + TILE_SIZE - 10);
+        Image image = AssetManager.getImage("assets/images/caja_normal.png");
+
+        if (image != null) {
+            g2.drawImage(image, x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8, null);
+        } else {
+            drawCrate(g2, x, y, new Color(174, 127, 73), new Color(109, 74, 38));
+        }
     }
 
     private void drawKeyBox(Graphics2D g2, int x, int y) {

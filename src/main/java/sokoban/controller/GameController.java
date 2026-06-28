@@ -3,16 +3,19 @@ package sokoban.controller;
 import sokoban.model.Direction;
 import sokoban.model.Game;
 import sokoban.model.Level;
-import sokoban.patterns.command.Command;
-import sokoban.patterns.command.CommandHistory;
-import sokoban.patterns.command.MoveCommand;
 import sokoban.patterns.factory.LevelFactory;
-import sokoban.patterns.factory.txtLevelFactory;
+import sokoban.patterns.factory.txtLevelFactory; // Respetamos tu nombre de clase actual
+import sokoban.patterns.memento.GameSnapshot;
+import sokoban.patterns.memento.HistoryCaretaker;
 import sokoban.view.GameWindow;
 
-import javax.swing.JOptionPane;
 import java.io.IOException;
 
+/**
+ * Controlador principal del juego Sokoban (MVC).
+ * Coordina la carga de niveles mediante Factory Method y gestiona la
+ * reversibilidad atómica del estado mediante el patrón Memento.
+ */
 public class GameController {
 
     private final LevelFactory levelFactory;
@@ -23,11 +26,12 @@ public class GameController {
     };
 
     private Game game;
-    private CommandHistory history;
+    private HistoryCaretaker caretaker;
     private int currentLevelIndex;
     private GameWindow window;
 
     public GameController() throws IOException {
+        // Inicializa la fábrica y arranca el nivel cero
         this.levelFactory = new txtLevelFactory();
         this.currentLevelIndex = 0;
         loadCurrentLevel();
@@ -38,76 +42,96 @@ public class GameController {
         refreshView();
     }
 
-    public Game getGame() {
-        return game;
-    }
-
-    public CommandHistory getHistory() {
-        return history;
-    }
-
-    public int getCurrentLevelNumber() {
-        return currentLevelIndex + 1;
-    }
-
+    /**
+     * Intenta desplazar al jugador en la dirección indicada.
+     * Saca un snapshot preventivo para el historial de Memento.
+     */
     public void move(Direction direction) {
-        Command command = new MoveCommand(game, direction);
-        command.execute();
-        history.add(command);
+        if (game == null) return;
 
-        refreshView();
+        // 1. CAPTURA: Sacamos la foto del estado exacto ANTES de mutar el modelo
+        GameSnapshot snapshot = game.createSnapshot();
 
-        if (game.isVictory()) {
-            handleVictory();
+        // 2. EJECUCIÓN: Intentamos realizar el movimiento en el modelo
+        boolean moved = game.movePlayer(direction);
+
+        if (moved) {
+            // 3. REGISTRO: Si el movimiento fue válido, el caretaker guarda la foto
+            caretaker.addSnapshot(snapshot);
+            refreshView();
+
+            // Verificación de victoria transaccional
+            if (game.isVictory()) {
+                handleVictory();
+            }
         }
     }
 
+    /**
+     * Aplica la rutina de deshacer retrocediendo 5 pasos atómicos
+     * bajo las restricciones de HistoryCaretaker (máximo 3 usos consecutivos).
+     */
     public void undo() {
-        history.undoLastFive();
-        refreshView();
+        if (caretaker == null) return;
+
+        // El cuidador centraliza las reglas de tamaño mínimo de pila y usos consecutivos
+        if (caretaker.canUndo()) {
+            GameSnapshot previousState = caretaker.undoLastFive();
+            if (previousState != null) {
+                // Inyectamos de golpe el estado pasado directamente en el juego
+                game.restoreFromSnapshot(previousState);
+                refreshView();
+            } else {
+                showError("No hay más movimientos en el historial para deshacer.");
+            }
+        } else {
+            showError("¡Límite de Undo alcanzado! Requiere más movimientos o máximo 3 usos consecutivos.");
+        }
     }
 
+    /**
+     * Reinicia el nivel actual regenerando el tablero y limpiando el historial.
+     */
     public void resetLevel() {
         try {
             loadCurrentLevel();
             refreshView();
         } catch (IOException e) {
-            showError("No se pudo reiniciar el nivel.");
+            showError("Error crítico: No se pudo reiniciar el nivel.");
         }
     }
 
+    /**
+     * Método interno para instanciar el nivel a través de la fábrica de texto.
+     */
     private void loadCurrentLevel() throws IOException {
         Level level = levelFactory.createLevel(levelPaths[currentLevelIndex], currentLevelIndex + 1);
         this.game = new Game(level.getBoard());
-        this.history = new CommandHistory();
+        this.caretaker = new HistoryCaretaker(); // Nace un historial limpio para el nivel
     }
 
+    /**
+     * Controla la transición de niveles delegando los diálogos a la vista.
+     */
     private void handleVictory() {
         if (currentLevelIndex < levelPaths.length - 1) {
-            int option = JOptionPane.showConfirmDialog(
-                    window,
-                    "¡Nivel completado!\n¿Querés pasar al siguiente nivel?",
-                    "Victoria",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            // MVC Limpio: La vista decide cómo mostrar el cartel y devuelve la opción elegida
+            boolean nextLevel = window.showVictoryDialog();
 
-            if (option == JOptionPane.YES_OPTION) {
+            if (nextLevel) {
                 currentLevelIndex++;
                 try {
                     loadCurrentLevel();
                     refreshView();
                 } catch (IOException e) {
-                    showError("No se pudo cargar el siguiente nivel.");
+                    showError("Error: No se pudo cargar el siguiente nivel.");
                 }
+            } else {
+                resetLevel(); // Si cancela, reinicia el nivel actual
             }
         } else {
-            JOptionPane.showMessageDialog(
-                    window,
-                    "¡Felicitaciones!\nCompletaste todos los niveles.",
-                    "Juego completado",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            // Si es el último mapa, mostramos el cierre definitivo
+            window.showGameCompletedDialog();
         }
     }
 
@@ -118,11 +142,21 @@ public class GameController {
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(
-                window,
-                message,
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-        );
+        if (window != null) {
+            window.showErrorMessage(message);
+        }
+    }
+
+    // Getters pasivos para cumplimiento estricto de UI reactiva
+    public Game getGame() {
+        return game;
+    }
+
+    public HistoryCaretaker getCaretaker() {
+        return caretaker;
+    }
+
+    public int getCurrentLevelNumber() {
+        return currentLevelIndex + 1;
     }
 }

@@ -2,68 +2,70 @@ package sokoban.view;
 
 import sokoban.controller.GameController;
 import sokoban.model.Game;
-import sokoban.patterns.command.CommandHistory;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.FlowLayout;
-import java.awt.Font;
 
 public class HudPanel extends JPanel {
 
     private final GameController controller;
-
-    private final JLabel levelLabel;
-    private final JLabel movementsLabel;
-    private final JLabel pushesLabel;
-    private final JLabel undoInfoLabel;
+    private final JLabel lblLevel;
+    private final JLabel lblMovements;
+    private final JLabel lblPushes;
+    private final JButton btnUndo;
+    private final JButton btnReset;
 
     public HudPanel(GameController controller) {
         this.controller = controller;
+        setLayout(new FlowLayout(FlowLayout.LEFT, 20, 10));
 
-        setLayout(new FlowLayout(FlowLayout.LEFT, 14, 10));
-        setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        lblLevel = new JLabel();
+        lblMovements = new JLabel();
+        lblPushes = new JLabel();
 
-        Font font = new Font("SansSerif", Font.BOLD, 14);
+        btnUndo = new JButton("Undo (U)");
+        btnUndo.addActionListener(e -> controller.undo());
+        // Evitamos que el botón robe el foco del teclado para no romper los KeyBindings
+        btnUndo.setFocusable(false);
 
-        levelLabel = new JLabel();
-        movementsLabel = new JLabel();
-        pushesLabel = new JLabel();
-        undoInfoLabel = new JLabel();
+        btnReset = new JButton("Reiniciar (R)");
+        btnReset.addActionListener(e -> controller.resetLevel());
+        btnReset.setFocusable(false);
 
-        levelLabel.setFont(font);
-        movementsLabel.setFont(font);
-        pushesLabel.setFont(font);
-        undoInfoLabel.setFont(font);
-
-        JButton undoButton = new JButton("Undo");
-        JButton resetButton = new JButton("Reiniciar");
-
-        undoButton.addActionListener(e -> controller.undo());
-        resetButton.addActionListener(e -> controller.resetLevel());
-
-        add(levelLabel);
-        add(movementsLabel);
-        add(pushesLabel);
-        add(undoInfoLabel);
-        add(undoButton);
-        add(resetButton);
+        add(lblLevel);
+        add(lblMovements);
+        add(lblPushes);
+        add(btnUndo);
+        add(btnReset);
 
         refresh();
     }
 
+    /**
+     * Sincroniza las etiquetas de texto con el estado en tiempo real del modelo
+     * y habilita/deshabilita el botón de deshacer según el Caretaker.
+     */
     public void refresh() {
         Game game = controller.getGame();
-        CommandHistory history = controller.getHistory();
 
-        levelLabel.setText("Nivel: " + controller.getCurrentLevelNumber());
-        movementsLabel.setText("Movimientos: " + game.getMovements());
-        pushesLabel.setText("Empujes: " + game.getPushes());
-        undoInfoLabel.setText(
-                "Undo usados seguidos: " + history.getConsecutiveUndoUses()
-                        + " | Comandos: " + history.getAvailableCommands()
-        );
+        lblLevel.setText("Nivel: " + controller.getCurrentLevelNumber());
+
+        if (game != null) {
+            lblMovements.setText("Movimientos: " + game.getMovements());
+            lblPushes.setText("Empujes: " + game.getPushes());
+        } else {
+            lblMovements.setText("Movimientos: 0");
+            lblPushes.setText("Empujes: 0");
+        }
+
+        // MVC Puro: Si el Caretaker bloqueó el deshacer (llegó a 3 consecutivos),
+        // desactivamos visualmente el botón en la interfaz.
+        if (controller.getCaretaker() != null) {
+            btnUndo.setEnabled(controller.getCaretaker().canUndo());
+        } else {
+            btnUndo.setEnabled(false);
+        }
     }
 }

@@ -110,6 +110,14 @@ public class Board {
         this.player = player;
     }
 
+    public BoardElement[][] getCellsCopy() {
+        BoardElement[][] copy = new BoardElement[getRows()][getCols()];
+        for (int row = 0; row < getRows(); row++) {
+            System.arraycopy(cells[row], 0, copy[row], 0, getCols());
+        }
+        return copy;
+    }
+
     public String getSymbolAt(Position position) {
         if (player != null && player.getPosition().equals(position)) {
             return "@";

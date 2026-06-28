@@ -6,6 +6,7 @@ import sokoban.model.Direction;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane; // Añadido para gestionar los diálogos en la vista
 import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -43,6 +44,46 @@ public class GameWindow extends JFrame {
         boardPanel.repaint();
         hudPanel.refresh();
         pack();
+    }
+
+    /**
+     * Muestra un diálogo de confirmación de victoria preguntando si se quiere avanzar de nivel.
+     * @return true si el usuario presiona "Sí", false en caso contrario.
+     */
+    public boolean showVictoryDialog() {
+        int option = JOptionPane.showConfirmDialog(
+                this,
+                "¡Nivel completado!\n¿Querés pasar al siguiente nivel?",
+                "Victoria",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE
+        );
+        return option == JOptionPane.YES_OPTION;
+    }
+
+    /**
+     * Muestra un mensaje informando que se han completado satisfactoriamente todos los niveles.
+     */
+    public void showGameCompletedDialog() {
+        JOptionPane.showMessageDialog(
+                this,
+                "¡Felicitaciones!\nCompletaste todos los niveles.",
+                "Juego completado",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    /**
+     * Muestra una ventana emergente de error personalizada.
+     * @param message Mensaje detallado del error.
+     */
+    public void showErrorMessage(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+        );
     }
 
     private void registerKeyBindings() {
