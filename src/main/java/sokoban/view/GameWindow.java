@@ -1,15 +1,16 @@
 package sokoban.view;
 
-import sokoban.controller.GameController;
-import sokoban.model.Direction;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane; // Añadido para gestionar los diálogos en la vista
 import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
+
+import sokoban.controller.GameController;
+import sokoban.model.Direction;
 
 public class GameWindow extends JFrame {
 

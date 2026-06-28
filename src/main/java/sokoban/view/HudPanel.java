@@ -1,12 +1,13 @@
 package sokoban.view;
 
-import sokoban.controller.GameController;
-import sokoban.model.Game;
+import java.awt.FlowLayout;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.awt.FlowLayout;
+
+import sokoban.controller.GameController;
+import sokoban.model.Game;
 
 public class HudPanel extends JPanel {
 

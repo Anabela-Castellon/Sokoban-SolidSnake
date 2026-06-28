@@ -1,16 +1,16 @@
 package sokoban.controller;
 
+import java.io.IOException;
+
 import sokoban.model.Direction;
 import sokoban.model.Game;
 import sokoban.model.Level;
 import sokoban.model.Score;
-import sokoban.patterns.factory.LevelFactory;
-import sokoban.patterns.factory.txtLevelFactory; // Respetamos tu nombre de clase actual
+import sokoban.patterns.factory.LevelFactory; // Respetamos tu nombre de clase actual
+import sokoban.patterns.factory.txtLevelFactory;
 import sokoban.patterns.memento.GameSnapshot;
 import sokoban.patterns.memento.HistoryCaretaker;
 import sokoban.view.GameWindow;
-
-import java.io.IOException;
 
 /**
  * Controlador principal del juego Sokoban (MVC).
