@@ -1,12 +1,12 @@
 package sokoban.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import sokoban.model.boxes.Box;
 import sokoban.model.elements.BoardElement;
 import sokoban.model.elements.OpenWall;
 import sokoban.model.elements.Player;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Board {
     private final BoardElement[][] cells;
