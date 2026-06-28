@@ -7,15 +7,18 @@ import sokoban.model.boxes.Box;
 import sokoban.model.elements.BoardElement;
 import sokoban.model.elements.OpenWall;
 import sokoban.model.elements.Player;
+import sokoban.model.items.Item;
 
 public class Board {
     private final BoardElement[][] cells;
     private Player player;
     private final List<Box> boxes;
+    private final List<Item> items;
 
     public Board(int rows, int cols) {
         cells = new BoardElement[rows][cols];
         boxes = new ArrayList<>();
+        items = new ArrayList<>();
     }
 
     public int getRows() {
@@ -98,8 +101,29 @@ public class Board {
         boxes.add(box);
     }
 
+    public void addItem(Item item) {
+        items.add(item);
+    }
+
     public List<Box> getBoxes() {
         return boxes;
+    }
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public Item getItemAt(Position position) {
+        for (Item item : items) {
+            if (item.getPosition().equals(position)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    public void removeItem(Item item) {
+        items.remove(item);
     }
 
     public Player getPlayer() {

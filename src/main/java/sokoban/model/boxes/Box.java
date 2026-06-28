@@ -2,12 +2,20 @@ package sokoban.model.boxes;
 
 import sokoban.model.Board;
 import sokoban.model.Position;
+import sokoban.patterns.strategy.PushEnergyStrategy;
+import sokoban.patterns.strategy.NormalPushEnergyStrategy;
 
 public abstract class Box {
     private Position position;
+    private final PushEnergyStrategy pushEnergyStrategy;
 
     public Box(Position position) {
+        this(position, new NormalPushEnergyStrategy());
+    }
+
+    public Box(Position position, PushEnergyStrategy pushEnergyStrategy) {
         this.position = position;
+        this.pushEnergyStrategy = pushEnergyStrategy;
     }
 
     public Position getPosition() {
@@ -16,6 +24,14 @@ public abstract class Box {
 
     public void setPosition(Position position) {
         this.position = position;
+    }
+
+    public PushEnergyStrategy getPushEnergyStrategy() {
+        return pushEnergyStrategy;
+    }
+
+    public int getPushEnergyCost() {
+        return pushEnergyStrategy.getEnergyCost();
     }
 
     public abstract String getType();

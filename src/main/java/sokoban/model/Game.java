@@ -2,11 +2,14 @@ package sokoban.model;
 
 import sokoban.model.boxes.Box;
 import sokoban.model.boxes.FragileBox;
+import sokoban.model.boxes.HeavyBox;
 import sokoban.model.boxes.KeyBox;
 import sokoban.model.boxes.NormalBox;
 import sokoban.model.elements.BoardElement;
+import sokoban.model.items.Item;
 import sokoban.patterns.memento.BoxMementoData;
 import sokoban.patterns.memento.GameSnapshot;
+import sokoban.patterns.memento.ItemMementoData;
 
 public class Game {
     private final Board board;
@@ -30,9 +33,11 @@ public class Game {
     public GameSnapshot createSnapshot() {
         return new GameSnapshot(
                 board.getBoxes(),
+                board.getItems(),
                 movements,
                 pushes,
                 board.getPlayer().getPosition(),
+                board.getPlayer().getEnergy(),
                 board.getCellsCopy()
         );
     }
@@ -57,22 +62,34 @@ public class Game {
             }
         }
 
-        // 3. Limpiamos las cajas actuales de la grilla del tablero
+        // 3. Limpiamos las cajas y los items actuales de la grilla del tablero
         this.board.getBoxes().clear();
+        this.board.getItems().clear();
 
         // 4. Reconstruimos y reinsertamos las cajas en el tablero a partir de sus datos históricos
         for (BoxMementoData boxData : snapshot.getSavedBoxes()) {
             switch (boxData.getBoxType()) {
                 case "FRAGILE" -> this.board.addBox(new FragileBox(boxData.getPosition(), boxData.getCurrentResistance()));
                 case "KEY" -> this.board.addBox(new KeyBox(boxData.getPosition()));
+                case "HEAVY" -> this.board.addBox(new HeavyBox(boxData.getPosition()));
                 default -> this.board.addBox(new NormalBox(boxData.getPosition()));
             }
         }
 
-        // 5. Restauramos la posición del jugador
-        this.board.getPlayer().setPosition(snapshot.getPlayerPosition());
+        // 5. Restauramos los items del tablero
+        for (ItemMementoData itemData : snapshot.getSavedItems()) {
+            switch (itemData.getItemType()) {
+                case "WATER_BOTTLE" -> this.board.addItem(new sokoban.model.items.WaterBottle(itemData.getPosition()));
+                default -> {
+                }
+            }
+        }
 
-        // 6. Recalculamos la victoria para asegurar que el flag visual quede sincronizado
+        // 6. Restauramos la posición y energía del jugador
+        this.board.getPlayer().setPosition(snapshot.getPlayerPosition());
+        this.board.getPlayer().setEnergy(snapshot.getPlayerEnergy());
+
+        // 7. Recalculamos la victoria para asegurar que el flag visual quede sincronizado
         checkVictory();
     }
 
@@ -95,6 +112,11 @@ public class Game {
                 return false;
             }
 
+            int pushCost = box.getPushEnergyCost();
+            if (!board.getPlayer().hasEnergy(pushCost)) {
+                return false;
+            }
+
             Position nextBoxPosition = box.getPosition().move(direction);
 
             if (!board.isWalkable(nextBoxPosition)) {
@@ -106,6 +128,7 @@ public class Game {
                     .getMovementStrategy()
                     .calculateFinalPosition(board, nextBoxPosition, direction);
 
+            board.getPlayer().consumeEnergy(pushCost);
             box.setPosition(finalBoxPosition);
             box.onPushed(board);
 
@@ -113,19 +136,34 @@ public class Game {
             movements++;
             pushes++;
 
+            collectItemAt(nextPosition);
             checkVictory();
             return true;
         }
 
         if (board.isWalkable(nextPosition)) {
+            if (!board.getPlayer().hasEnergy(1)) {
+                return false;
+            }
+
+            board.getPlayer().consumeEnergy(1);
             board.getPlayer().setPosition(nextPosition);
             movements++;
 
+            collectItemAt(nextPosition);
             checkVictory();
             return true;
         }
 
         return false;
+    }
+
+    private void collectItemAt(Position position) {
+        Item item = board.getItemAt(position);
+        if (item != null) {
+            item.apply(board.getPlayer());
+            board.removeItem(item);
+        }
     }
 
     private void checkVictory() {

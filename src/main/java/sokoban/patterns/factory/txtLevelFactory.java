@@ -69,6 +69,16 @@ public class txtLevelFactory extends LevelFactory {
                         board.addBox(new KeyBox(position));
                         break;
 
+                    case 'H':
+                        board.setElementAt(position, new Floor());
+                        board.addBox(new sokoban.model.boxes.HeavyBox(position));
+                        break;
+
+                    case 'B':
+                        board.setElementAt(position, new Floor());
+                        board.addItem(new sokoban.model.items.WaterBottle(position));
+                        break;
+
                     case 'C':
                         board.setElementAt(position, new LockCell());
                         break;

@@ -23,7 +23,8 @@ public class GameController {
     private final String[] levelPaths = {
             "levels/nivel1.txt",
             "levels/nivel2.txt",
-            "levels/nivel3.txt"
+            "levels/nivel3.txt",
+            "levels/nivel4.txt"
     };
 
     private Game game;

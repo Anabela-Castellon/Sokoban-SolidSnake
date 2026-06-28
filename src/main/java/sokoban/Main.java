@@ -1,10 +1,10 @@
 package sokoban;
 
-import sokoban.controller.GameController;
-import sokoban.view.GameWindow;
-
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
+import sokoban.controller.GameController;
+import sokoban.view.GameWindow;
 
 public class Main {
 

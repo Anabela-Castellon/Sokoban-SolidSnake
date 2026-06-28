@@ -6,8 +6,11 @@ import sokoban.model.Game;
 import sokoban.model.Position;
 import sokoban.model.boxes.Box;
 import sokoban.model.boxes.FragileBox;
+import sokoban.model.boxes.HeavyBox;
 import sokoban.model.boxes.KeyBox;
 import sokoban.model.boxes.NormalBox;
+import sokoban.model.items.Item;
+import sokoban.model.items.WaterBottle;
 import sokoban.model.elements.BoardElement;
 import sokoban.model.elements.ClosedWall;
 import sokoban.model.elements.Destination;
@@ -72,6 +75,11 @@ public class BoardPanel extends JPanel {
 
                 BoardElement element = board.getElementAt(position);
                 drawBaseTile(g2, element, x, y);
+
+                Item item = board.getItemAt(position);
+                if (item != null) {
+                    drawItem(g2, item, x, y);
+                }
 
                 Box box = board.getBoxAt(position);
                 if (box != null) {
@@ -230,6 +238,11 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawBox(Graphics2D g2, Box box, int x, int y) {
+        if (box instanceof HeavyBox) {
+            drawHeavyBox(g2, x, y);
+            return;
+        }
+
         if (box instanceof NormalBox) {
             drawNormalBox(g2, x, y);
             return;
@@ -242,7 +255,16 @@ public class BoardPanel extends JPanel {
 
         if (box instanceof FragileBox) {
             drawFragileBox(g2, (FragileBox) box, x, y);
+            return;
         }
+    }
+
+    private void drawHeavyBox(Graphics2D g2, int x, int y) {
+        drawCrate(g2, x, y, new Color(123, 123, 153), new Color(63, 63, 93));
+
+        g2.setColor(new Color(210, 210, 255));
+        g2.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g2.drawString("H", x + 18, y + 30);
     }
 
     private void drawNormalBox(Graphics2D g2, int x, int y) {
@@ -297,6 +319,25 @@ public class BoardPanel extends JPanel {
 
         g2.drawLine(x + 8, y + 18, x + TILE_SIZE - 8, y + 18);
         g2.drawLine(x + 8, y + TILE_SIZE - 18, x + TILE_SIZE - 8, y + TILE_SIZE - 18);
+    }
+
+    private void drawItem(Graphics2D g2, Item item, int x, int y) {
+        if (item instanceof WaterBottle) {
+            drawWaterBottle(g2, x, y);
+        }
+    }
+
+    private void drawWaterBottle(Graphics2D g2, int x, int y) {
+        g2.setColor(new Color(45, 145, 255));
+        g2.fillRoundRect(x + 14, y + 10, 20, 28, 8, 8);
+        g2.setColor(new Color(220, 240, 255));
+        g2.fillRoundRect(x + 17, y + 13, 14, 22, 6, 6);
+        g2.setColor(new Color(255, 255, 255, 160));
+        g2.fillOval(x + 18, y + 10, 8, 6);
+        g2.setColor(new Color(255, 255, 255));
+        g2.fillRect(x + 20, y + 24, 8, 8);
+        g2.setColor(new Color(255, 230, 86));
+        g2.fillOval(x + 22, y + 26, 4, 4);
     }
 
     private void drawPlayer(Graphics2D g2, int x, int y) {
