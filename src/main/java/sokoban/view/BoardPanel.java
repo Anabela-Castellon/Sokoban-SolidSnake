@@ -89,9 +89,6 @@ public class BoardPanel extends JPanel {
                 if (board.getPlayer() != null && board.getPlayer().getPosition().equals(position)) {
                     drawPlayer(g2, x, y);
                 }
-
-                g2.setColor(new Color(0, 0, 0, 35));
-                g2.drawRect(x, y, TILE_SIZE, TILE_SIZE);
             }
         }
 
@@ -119,32 +116,60 @@ public class BoardPanel extends JPanel {
             return;
         }
 
-        drawGrassTile(g2, x, y);
-
         if (element instanceof Destination) {
-            drawDestinationMark(g2, x, y);
+            drawDestinationTile(g2, x, y);
+            return;
         }
+
+        drawGrassTile(g2, x, y);
 
         if (element instanceof LockCell) {
             drawLockMark(g2, x, y);
         }
     }
 
+    private boolean drawImage(Graphics2D g2, String resourcePath, int x, int y, int width, int height) {
+        Image image = AssetManager.getImage(resourcePath);
+        if (image != null) {
+            // For floor tiles, stretch to fill completely
+            if (resourcePath.contains("PisoCemento")) {
+                g2.drawImage(image, x, y, width, height, null);
+                return true;
+            }
+
+            int imageWidth = image.getWidth(null);
+            int imageHeight = image.getHeight(null);
+
+            if (imageWidth > 0 && imageHeight > 0) {
+                double scale = Math.min((double) width / imageWidth, (double) height / imageHeight);
+                int drawWidth = (int) Math.round(imageWidth * scale);
+                int drawHeight = (int) Math.round(imageHeight * scale);
+                int drawX = x + (width - drawWidth) / 2;
+                int drawY = y + (height - drawHeight) / 2;
+                g2.drawImage(image, drawX, drawY, drawWidth, drawHeight, null);
+                return true;
+            }
+
+            g2.drawImage(image, x, y, width, height, null);
+            return true;
+        }
+        return false;
+    }
+
     private void drawGrassTile(Graphics2D g2, int x, int y) {
-        g2.setColor(new Color(92, 181, 69));
+        if (drawImage(g2, "assets/images/PisoCemento.png", x, y, TILE_SIZE, TILE_SIZE)) {
+            return;
+        }
+
+        g2.setColor(new Color(150, 150, 150));
         g2.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-
-        g2.setColor(new Color(79, 160, 58));
-        g2.fillOval(x + 7, y + 8, 5, 5);
-        g2.fillOval(x + 30, y + 14, 4, 4);
-        g2.fillOval(x + 19, y + 31, 6, 6);
-
-        g2.setColor(new Color(124, 205, 96));
-        g2.fillOval(x + 12, y + 23, 4, 4);
-        g2.fillOval(x + 34, y + 29, 5, 5);
     }
 
     private void drawWallTile(Graphics2D g2, int x, int y) {
+        if (drawImage(g2, "assets/images/MuroLadrillo.png", x, y, TILE_SIZE, TILE_SIZE)) {
+            return;
+        }
+
         g2.setColor(new Color(148, 41, 38));
         g2.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
@@ -186,10 +211,13 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawIceTile(Graphics2D g2, int x, int y) {
-        g2.setColor(new Color(163, 227, 255));
-        g2.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+        if (drawImage(g2, "assets/images/PisoHielo.png", x, y, TILE_SIZE, TILE_SIZE)) {
+            return;
+        }
 
-        g2.setColor(new Color(220, 245, 255));
+        drawGrassTile(g2, x, y);
+
+        g2.setColor(new Color(220, 245, 255, 180));
         g2.fillRect(x + 4, y + 6, TILE_SIZE - 10, 8);
         g2.fillRect(x + 12, y + 23, TILE_SIZE - 18, 6);
 
@@ -197,6 +225,26 @@ public class BoardPanel extends JPanel {
         g2.drawLine(x + 10, y + 35, x + 26, y + 18);
         g2.drawLine(x + 26, y + 18, x + 39, y + 28);
         g2.drawLine(x + 18, y + 40, x + 37, y + 36);
+    }
+
+    private void drawDestinationTile(Graphics2D g2, int x, int y) {
+        // Draw cement floor as base
+        if (drawImage(g2, "assets/images/PisoCemento.png", x, y, TILE_SIZE, TILE_SIZE)) {
+            // Draw destination box on top
+            drawImage(g2, "assets/images/CasilleroCaja.png", x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+            return;
+        }
+
+        g2.setColor(new Color(150, 150, 150));
+        g2.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+        // Draw destination box on top
+        if (drawImage(g2, "assets/images/CasilleroCaja.png", x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12)) {
+            return;
+        }
+
+        // Fallback visual marker
+        drawDestinationMark(g2, x, y);
     }
 
     private void drawDestinationMark(Graphics2D g2, int x, int y) {
@@ -260,6 +308,13 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawHeavyBox(Graphics2D g2, int x, int y) {
+        if (drawImage(g2, "assets/images/caja_normal.png", x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8)) {
+            g2.setColor(new Color(255, 255, 255, 200));
+            g2.setFont(new Font("SansSerif", Font.BOLD, 16));
+            g2.drawString("H", x + 17, y + 29);
+            return;
+        }
+
         drawCrate(g2, x, y, new Color(123, 123, 153), new Color(63, 63, 93));
 
         g2.setColor(new Color(210, 210, 255));
@@ -268,13 +323,11 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawNormalBox(Graphics2D g2, int x, int y) {
-        Image image = AssetManager.getImage("assets/images/caja_normal.png");
-
-        if (image != null) {
-            g2.drawImage(image, x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8, null);
-        } else {
-            drawCrate(g2, x, y, new Color(174, 127, 73), new Color(109, 74, 38));
+        if (drawImage(g2, "assets/images/caja_normal.png", x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8)) {
+            return;
         }
+
+        drawCrate(g2, x, y, new Color(174, 127, 73), new Color(109, 74, 38));
     }
 
     private void drawKeyBox(Graphics2D g2, int x, int y) {
@@ -288,11 +341,26 @@ public class BoardPanel extends JPanel {
 
     private void drawFragileBox(Graphics2D g2, FragileBox fragileBox, int x, int y) {
         if (fragileBox.getResistance() <= 0) {
+            if (drawImage(g2, "assets/images/CajaFragil.png", x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8)) {
+                g2.setColor(new Color(35, 35, 35));
+                g2.drawLine(x + 10, y + 10, x + TILE_SIZE - 10, y + TILE_SIZE - 10);
+                g2.drawLine(x + TILE_SIZE - 10, y + 10, x + 10, y + TILE_SIZE - 10);
+                return;
+            }
+
             drawCrate(g2, x, y, new Color(110, 110, 110), new Color(60, 60, 60));
 
             g2.setColor(new Color(35, 35, 35));
             g2.drawLine(x + 10, y + 10, x + TILE_SIZE - 10, y + TILE_SIZE - 10);
             g2.drawLine(x + TILE_SIZE - 10, y + 10, x + 10, y + TILE_SIZE - 10);
+            return;
+        }
+
+        if (drawImage(g2, "assets/images/CajaFragil.png", x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8)) {
+            g2.setColor(new Color(255, 255, 255, 220));
+            g2.setFont(new Font("SansSerif", Font.BOLD, 16));
+            String text = String.valueOf(fragileBox.getResistance());
+            g2.drawString(text, x + 20, y + 28);
             return;
         }
 
@@ -328,6 +396,10 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawWaterBottle(Graphics2D g2, int x, int y) {
+        if (drawImage(g2, "assets/images/BotellaPoder.png", x + 6, y + 4, TILE_SIZE - 12, TILE_SIZE - 8)) {
+            return;
+        }
+
         g2.setColor(new Color(45, 145, 255));
         g2.fillRoundRect(x + 14, y + 10, 20, 28, 8, 8);
         g2.setColor(new Color(220, 240, 255));
@@ -341,6 +413,10 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawPlayer(Graphics2D g2, int x, int y) {
+        if (drawImage(g2, "assets/images/Personaje.png", x + 6, y + 3, TILE_SIZE - 12, TILE_SIZE - 8)) {
+            return;
+        }
+
         g2.setColor(new Color(0, 0, 0, 50));
         g2.fillOval(x + 12, y + 34, 22, 8);
 
